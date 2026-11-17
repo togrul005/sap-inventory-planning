@@ -1,0 +1,6 @@
+code;name;descr;criticality;isOpen
+S;Submitted;Waiting for the planning lead;2;true
+A;Approved;Approved, not yet written to SAP S/4HANA;3;true
+U;Updated in S/4HANA;New parameters written to the material's MRP data;3;false
+R;Rejected;Rejected by the planning lead;1;false
+W;Withdrawn;Withdrawn by the planner;0;false

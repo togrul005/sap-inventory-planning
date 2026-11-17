@@ -1,0 +1,374 @@
+<mvc:View
+  controllerName="brightline.cockpit.controller.Cockpit"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+  xmlns:f="sap.f"
+  xmlns:core="sap.ui.core"
+  xmlns:app="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1"
+  displayBlock="true"
+  height="100%">
+  <App id="app">
+    <pages>
+      <f:DynamicPage id="page" headerExpanded="true" toggleHeaderOnTitleClick="true">
+
+        <!-- Title: app name, plant and the main actions -->
+        <f:title>
+          <f:DynamicPageTitle>
+            <f:heading>
+              <Title text="{i18n>appTitle}" wrapping="true" level="H2"/>
+            </f:heading>
+            <f:expandedContent>
+              <Text text="{i18n>companyName} · {i18n>plant} {view>/plant}"/>
+            </f:expandedContent>
+            <f:snappedContent>
+              <Text text="{i18n>companyName} · {i18n>plant} {view>/plant} · {view>/lastSyncText}"/>
+            </f:snappedContent>
+            <f:content>
+              <ObjectStatus
+                text="{view>/userText}"
+                icon="sap-icon://person-placeholder"
+                visible="{= !!${view>/user} }"/>
+            </f:content>
+            <f:actions>
+              <Button
+                id="syncButton"
+                text="{i18n>syncButton}"
+                icon="sap-icon://synchronize"
+                type="Emphasized"
+                busy="{view>/syncing}"
+                busyIndicatorDelay="0"
+                press=".onSync"/>
+              <Button
+                id="connectionButton"
+                text="{i18n>checkConnection}"
+                icon="sap-icon://connected"
+                type="Transparent"
+                press=".onCheckConnection"/>
+              <Button
+                id="approvalsButton"
+                text="{i18n>openApprovals}"
+                icon="sap-icon://approvals"
+                type="Transparent"
+                visible="{view>/isApprover}"
+                press=".onOpenApprovals"/>
+              <Button
+                id="infoButton"
+                icon="sap-icon://hint"
+                tooltip="{i18n>infoButton}"
+                type="Transparent"
+                press=".onInfo"/>
+            </f:actions>
+          </f:DynamicPageTitle>
+        </f:title>
+
+        <!-- Header: plant, last sync, demand window and KPI tiles -->
+        <f:header>
+          <f:DynamicPageHeader pinnable="true">
+            <VBox>
+              <HBox alignItems="Center" wrap="Wrap" class="brightlineHeaderLine">
+                <Label text="{i18n>plant}" labelFor="plantSelect" class="sapUiTinyMarginEnd"/>
+                <ComboBox
+                  id="plantSelect"
+                  width="9rem"
+                  value="{view>/plant}"
+                  placeholder="{i18n>plantPlaceholder}"
+                  items="{view>/plants}"
+                  change=".onPlantChange">
+                  <core:ListItem key="{view>plant}" text="{view>plant}" additionalText="{view>source}"/>
+                </ComboBox>
+                <ObjectStatus
+                  class="sapUiSmallMarginBegin"
+                  icon="sap-icon://history"
+                  text="{view>/lastSyncText}"
+                  state="{view>/lastSyncState}"/>
+                <ObjectStatus
+                  class="sapUiSmallMarginBegin"
+                  icon="sap-icon://line-chart"
+                  text="{view>/demandWindowText}"/>
+                <ObjectStatus
+                  class="sapUiSmallMarginBegin"
+                  icon="sap-icon://lead"
+                  text="{view>/stockValueText}"/>
+              </HBox>
+              <HBox wrap="Wrap" class="brightlineTiles">
+                <GenericTile id="tileCritical" header="{i18n>kpiCritical}" subheader="{i18n>kpiCriticalSub}" frameType="OneByOne" press=".onTilePress" app:filter="C">
+                  <TileContent unit="{i18n>materialsUnit}">
+                    <NumericContent value="{kpi>/critical}" valueColor="Error" icon="sap-icon://alert" withMargin="false" nullifyValue="false"/>
+                  </TileContent>
+                </GenericTile>
+                <GenericTile id="tileReorder" header="{i18n>kpiReorder}" subheader="{i18n>kpiReorderSub}" frameType="OneByOne" press=".onTilePress" app:filter="R">
+                  <TileContent unit="{i18n>materialsUnit}">
+                    <NumericContent value="{kpi>/reorder}" valueColor="Critical" icon="sap-icon://warning" withMargin="false" nullifyValue="false"/>
+                  </TileContent>
+                </GenericTile>
+                <GenericTile id="tileHealthy" header="{i18n>kpiHealthy}" subheader="{i18n>kpiHealthySub}" frameType="OneByOne" press=".onTilePress" app:filter="O">
+                  <TileContent unit="{i18n>materialsUnit}">
+                    <NumericContent value="{kpi>/healthy}" valueColor="Good" icon="sap-icon://sys-enter-2" withMargin="false" nullifyValue="false"/>
+                  </TileContent>
+                </GenericTile>
+                <GenericTile id="tileExcess" header="{i18n>kpiExcess}" subheader="{i18n>kpiExcessSub}" frameType="OneByOne" press=".onTilePress" app:filter="E">
+                  <TileContent footer="{kpi>/excessValueText}">
+                    <NumericContent value="{kpi>/excess}" valueColor="Neutral" icon="sap-icon://arrow-top" withMargin="false" nullifyValue="false"/>
+                  </TileContent>
+                </GenericTile>
+                <GenericTile id="tileNoParameters" header="{i18n>kpiNoParameters}" subheader="{i18n>kpiNoParametersSub}" frameType="OneByOne" press=".onTilePress" app:filter="N">
+                  <TileContent unit="{i18n>materialsUnit}">
+                    <NumericContent value="{kpi>/noParameters}" valueColor="Neutral" icon="sap-icon://question-mark" withMargin="false" nullifyValue="false"/>
+                  </TileContent>
+                </GenericTile>
+                <GenericTile id="tileReview" header="{i18n>kpiReview}" subheader="{i18n>kpiReviewSub}" frameType="OneByOne" press=".onTilePress" app:filter="REVIEW">
+                  <TileContent unit="{i18n>materialsUnit}">
+                    <NumericContent value="{kpi>/toReview}" valueColor="Critical" icon="sap-icon://measure" withMargin="false" nullifyValue="false"/>
+                  </TileContent>
+                </GenericTile>
+                <GenericTile id="tileOpen" header="{i18n>kpiOpen}" subheader="{i18n>kpiOpenSub}" frameType="OneByOne" press=".onOpenChangesTile">
+                  <TileContent unit="{i18n>changesUnit}">
+                    <NumericContent value="{kpi>/openChanges}" valueColor="Neutral" icon="sap-icon://approvals" withMargin="false" nullifyValue="false"/>
+                  </TileContent>
+                </GenericTile>
+              </HBox>
+            </VBox>
+          </f:DynamicPageHeader>
+        </f:header>
+
+        <f:content>
+          <IconTabBar
+            id="tabs"
+            selectedKey="{view>/tab}"
+            expandable="false"
+            headerBackgroundDesign="Transparent"
+            applyContentPadding="false">
+            <items>
+
+              <!-- Materials: stock situation, current and suggested parameters -->
+              <IconTabFilter key="materials" icon="sap-icon://product" text="{i18n>tabMaterials}" count="{kpi>/materials}">
+                <Table
+                  id="materialsTable"
+                  class="brightlineMaterialsTable"
+                  growing="true"
+                  growingThreshold="50"
+                  growingScrollToLoad="true"
+                  sticky="ColumnHeaders,HeaderToolbar"
+                  popinLayout="GridSmall"
+                  items="{
+                    path: '/Materials',
+                    suspended: true,
+                    sorter: [{ path: 'statusSort' }, { path: 'material' }],
+                    parameters: { $count: true, $select: 'parameterChangeNo,mrpType,leadTimeDays,price,currency,priceUnitQty,demandStdDevDaily,consumptionFrom,consumptionTo' }
+                  }">
+                  <headerToolbar>
+                    <OverflowToolbar>
+                      <Title id="materialsTitle" text="{view>/materialsTitle}" level="H3"/>
+                      <ToolbarSpacer/>
+                      <Select id="statusFilter" selectedKey="{view>/statusFilter}" change=".onStatusFilter" width="12rem">
+                        <core:Item key="ALL" text="{i18n>filterAll}"/>
+                        <core:Item key="C" text="{i18n>statusC}"/>
+                        <core:Item key="R" text="{i18n>statusR}"/>
+                        <core:Item key="O" text="{i18n>statusO}"/>
+                        <core:Item key="E" text="{i18n>statusE}"/>
+                        <core:Item key="N" text="{i18n>statusN}"/>
+                        <core:Item key="REVIEW" text="{i18n>filterReview}"/>
+                      </Select>
+                      <SearchField id="search" width="15rem" placeholder="{i18n>searchPlaceholder}" search=".onSearch" value="{view>/search}"/>
+                    </OverflowToolbar>
+                  </headerToolbar>
+                  <noData>
+                    <IllustratedMessage
+                      illustrationType="sapIllus-NoData"
+                      title="{i18n>noMaterialsTitle}"
+                      description="{i18n>noMaterialsText}">
+                      <additionalContent>
+                        <Button text="{i18n>syncButton}" type="Emphasized" icon="sap-icon://synchronize" press=".onSync"/>
+                      </additionalContent>
+                    </IllustratedMessage>
+                  </noData>
+                  <columns>
+                    <Column width="17rem">
+                      <Text text="{i18n>colMaterial}"/>
+                    </Column>
+                    <Column hAlign="End" width="9rem">
+                      <Text text="{i18n>colStock}"/>
+                    </Column>
+                    <Column hAlign="End" width="7rem" minScreenWidth="Tablet" demandPopin="true">
+                      <Text text="{i18n>colCoverage}"/>
+                    </Column>
+                    <Column hAlign="End" width="8rem" minScreenWidth="Desktop" demandPopin="true">
+                      <Text text="{i18n>colDemand}"/>
+                    </Column>
+                    <Column width="8rem">
+                      <Text text="{i18n>colStatus}"/>
+                    </Column>
+                    <Column hAlign="End" minScreenWidth="Tablet" demandPopin="true">
+                      <Text text="{i18n>colCurrent}"/>
+                    </Column>
+                    <Column hAlign="End" minScreenWidth="Tablet" demandPopin="true">
+                      <Text text="{i18n>colSuggested}"/>
+                    </Column>
+                    <Column hAlign="End" width="8rem">
+                      <Text text=""/>
+                    </Column>
+                  </columns>
+                  <items>
+                    <ColumnListItem vAlign="Middle">
+                      <cells>
+                        <VBox>
+                          <ObjectIdentifier
+                            title="{description}"
+                            text="{parts: [{path: 'material', targetType: 'any'}, {path: 'mrpType', targetType: 'any'}, {path: 'leadTimeDays', targetType: 'any'}], formatter: '.formatter.materialSubText'}"/>
+                          <Link
+                            text="{parts: [{path: 'openChangeNo', targetType: 'any'}, {path: 'openChangeStatus', targetType: 'any'}], formatter: '.formatter.openChangeText'}"
+                            visible="{path: 'openChangeNo', targetType: 'any', formatter: '.formatter.hasValue'}"
+                            press=".onOpenChangeLink"/>
+                        </VBox>
+                        <VBox alignItems="End">
+                          <ObjectNumber number="{path: 'stockQty', targetType: 'any', formatter: '.formatter.quantity'}" unit="{baseUnit}"/>
+                          <Text class="brightlineSubtle" text="{parts: [{path: 'stockValue', targetType: 'any'}, {path: 'currency', targetType: 'any'}], formatter: '.formatValue'}"/>
+                        </VBox>
+                        <ObjectStatus
+                          text="{path: 'coverageDays', targetType: 'any', formatter: '.formatter.coverageText'}"
+                          state="{parts: [{path: 'coverageDays', targetType: 'any'}, {path: 'leadTimeDays', targetType: 'any'}], formatter: '.formatter.coverageState'}"/>
+                        <VBox alignItems="End">
+                          <ObjectNumber number="{path: 'avgDailyDemand', targetType: 'any', formatter: '.formatter.demand'}" unit="{baseUnit}"/>
+                          <Text class="brightlineSubtle" text="{path: 'consumptionDocs', targetType: 'any', formatter: '.formatter.demandSubText'}"/>
+                        </VBox>
+                        <ObjectStatus
+                          text="{path: 'status', targetType: 'any', formatter: '.formatter.statusText'}"
+                          state="{path: 'status', targetType: 'any', formatter: '.formatter.statusState'}"
+                          icon="{path: 'status', targetType: 'any', formatter: '.formatter.statusIcon'}"/>
+                        <VBox alignItems="End">
+                          <Text text="{parts: [{path: 'reorderPoint', targetType: 'any'}, {path: 'safetyStock', targetType: 'any'}, {path: 'maxStock', targetType: 'any'}], formatter: '.formatter.parameterText'}"/>
+                          <Text class="brightlineSubtle" textAlign="End" text="{parts: [{path: 'parameterSource', targetType: 'any'}, {path: 'parameterChangeNo', targetType: 'any'}], formatter: '.formatter.parameterSourceText'}"/>
+                        </VBox>
+                        <VBox alignItems="End">
+                          <Text text="{parts: [{path: 'suggestedReorderPoint', targetType: 'any'}, {path: 'suggestedSafetyStock', targetType: 'any'}, {path: 'suggestedMaxStock', targetType: 'any'}], formatter: '.formatter.suggestionText'}"/>
+                          <ObjectStatus
+                            text="{parts: [{path: 'deviationPct', targetType: 'any'}, {path: 'suggestedReorderPoint', targetType: 'any'}], formatter: '.formatter.deviationText'}"
+                            state="{path: 'deviationPct', targetType: 'any', formatter: '.formatter.deviationState'}"/>
+                        </VBox>
+                        <Button
+                          text="{i18n>proposeButton}"
+                          icon="sap-icon://edit"
+                          enabled="{path: 'openChangeNo', targetType: 'any', formatter: '.formatter.hasNoOpenChange'}"
+                          type="{parts: [{path: 'deviationPct', targetType: 'any'}, {path: 'openChangeNo', targetType: 'any'}], formatter: '.formatter.proposeButtonType'}"
+                          press=".onPropose"/>
+                      </cells>
+                    </ColumnListItem>
+                  </items>
+                </Table>
+              </IconTabFilter>
+
+              <!-- Parameter changes proposed in the cockpit -->
+              <IconTabFilter key="changes" icon="sap-icon://approvals" text="{i18n>tabChanges}" count="{kpi>/openChanges}">
+                <Table
+                  id="changesTable"
+                  growing="true"
+                  growingThreshold="30"
+                  sticky="ColumnHeaders,HeaderToolbar"
+                  popinLayout="GridSmall"
+                  noDataText="{i18n>noChanges}"
+                  items="{
+                    path: '/Changes',
+                    suspended: true,
+                    sorter: { path: 'createdAt', descending: true },
+                    parameters: { $expand: 'status,statusAfter' }
+                  }">
+                  <headerToolbar>
+                    <OverflowToolbar>
+                      <Title text="{view>/changesTitle}" level="H3"/>
+                      <ToolbarSpacer/>
+                      <SearchField id="changesSearch" width="15rem" placeholder="{i18n>searchPlaceholder}" search=".onChangesSearch" value="{view>/changesSearch}"/>
+                    </OverflowToolbar>
+                  </headerToolbar>
+                  <columns>
+                    <Column width="11rem"><Text text="{i18n>colChange}"/></Column>
+                    <Column width="14rem"><Text text="{i18n>colMaterial}"/></Column>
+                    <Column hAlign="End" minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colChangeValues}"/></Column>
+                    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>colMethod}"/></Column>
+                    <Column><Text text="{i18n>colChangeStatus}"/></Column>
+                    <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colStatusAfter}"/></Column>
+                    <Column hAlign="End" minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>colValueChange}"/></Column>
+                    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>colS4}"/></Column>
+                    <Column hAlign="End" width="7rem"><Text text=""/></Column>
+                  </columns>
+                  <items>
+                    <ColumnListItem vAlign="Middle">
+                      <cells>
+                        <ObjectIdentifier title="{changeNo}" text="{createdBy} · {path: 'createdAt', targetType: 'any', formatter: '.formatter.dateTime'}"/>
+                        <ObjectIdentifier title="{description}" text="{material}"/>
+                        <VBox alignItems="End">
+                          <Text text="{parts: [{path: 'currentReorderPoint', targetType: 'any'}, {path: 'newReorderPoint', targetType: 'any'}], formatter: '.formatter.changeValues'}"/>
+                          <Text text="{parts: [{path: 'currentSafetyStock', targetType: 'any'}, {path: 'newSafetyStock', targetType: 'any'}], formatter: '.formatter.changeValues'}"/>
+                          <Text text="{parts: [{path: 'currentMaxStock', targetType: 'any'}, {path: 'newMaxStock', targetType: 'any'}], formatter: '.formatter.changeValues'}"/>
+                        </VBox>
+                        <Text text="{path: 'method', targetType: 'any', formatter: '.formatter.methodText'}" tooltip="{reason}"/>
+                        <ObjectStatus text="{status/name}" state="{path: 'status_code', targetType: 'any', formatter: '.formatter.changeState'}" tooltip="{decisionNote}"/>
+                        <ObjectStatus
+                          text="{statusAfter/name}"
+                          state="{path: 'statusAfter_code', targetType: 'any', formatter: '.formatter.statusState'}"
+                          icon="{path: 'statusAfter_code', targetType: 'any', formatter: '.formatter.statusIcon'}"/>
+                        <ObjectNumber number="{parts: [{path: 'safetyStockValueChange', targetType: 'any'}, {path: 'currency', targetType: 'any'}], formatter: '.formatter.signedAmount'}"/>
+                        <Text text="{parts: [{path: 's4Mode', targetType: 'any'}, {path: 's4UpdatedAt', targetType: 'any'}], formatter: '.formatter.s4Text'}"/>
+                        <Button
+                          text="{i18n>withdraw}"
+                          type="Transparent"
+                          icon="sap-icon://undo"
+                          visible="{path: 'status_code', targetType: 'any', formatter: '.formatter.isOpenChange'}"
+                          press=".onWithdraw"/>
+                      </cells>
+                    </ColumnListItem>
+                  </items>
+                </Table>
+              </IconTabFilter>
+
+              <!-- Every synchronisation with SAP S/4HANA -->
+              <IconTabFilter key="sync" icon="sap-icon://history" text="{i18n>tabSyncLog}">
+                <Table
+                  id="syncTable"
+                  growing="true"
+                  growingThreshold="20"
+                  sticky="ColumnHeaders,HeaderToolbar"
+                  popinLayout="GridSmall"
+                  noDataText="{i18n>noSyncRuns}"
+                  items="{
+                    path: '/SyncRuns',
+                    suspended: true,
+                    sorter: { path: 'startedAt', descending: true }
+                  }">
+                  <headerToolbar>
+                    <OverflowToolbar>
+                      <Title text="{i18n>syncLogTitle}" level="H3"/>
+                    </OverflowToolbar>
+                  </headerToolbar>
+                  <columns>
+                    <Column width="12rem"><Text text="{i18n>colStarted}"/></Column>
+                    <Column width="6rem"><Text text="{i18n>colResult}"/></Column>
+                    <Column hAlign="End" width="6rem" minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colMaterials}"/></Column>
+                    <Column hAlign="End" width="6rem" minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>colMrpData}"/></Column>
+                    <Column hAlign="End" width="6rem" minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>colPrices}"/></Column>
+                    <Column hAlign="End" width="7rem" minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>colGoodsIssues}"/></Column>
+                    <Column hAlign="End" width="6rem" minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>colDuration}"/></Column>
+                    <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colMessage}"/></Column>
+                  </columns>
+                  <items>
+                    <ColumnListItem vAlign="Middle">
+                      <cells>
+                        <ObjectIdentifier title="{path: 'startedAt', targetType: 'any', formatter: '.formatter.dateTime'}" text="{startedBy} · {i18n>plant} {plant}"/>
+                        <ObjectStatus text="{path: 'result', targetType: 'any', formatter: '.formatter.resultText'}" state="{path: 'result', targetType: 'any', formatter: '.formatter.resultState'}"/>
+                        <Text text="{materials}"/>
+                        <Text text="{parametersFromS4}"/>
+                        <Text text="{pricesFromS4}"/>
+                        <Text text="{consumptionDocs}"/>
+                        <Text text="{path: 'durationMs', targetType: 'any', formatter: '.formatter.durationText'}"/>
+                        <Text text="{message}" wrapping="true"/>
+                      </cells>
+                    </ColumnListItem>
+                  </items>
+                </Table>
+              </IconTabFilter>
+            </items>
+          </IconTabBar>
+        </f:content>
+      </f:DynamicPage>
+    </pages>
+  </App>
+</mvc:View>

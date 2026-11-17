@@ -1,0 +1,44 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="wf-common.css"></head><body>
+<div class="canvas" style="height:840px;">
+  <div class="title">Wireframe 3 – Approve Parameter Changes (planning lead)</div>
+  <div class="sub">SAP Fiori elements for OData V4 · List Report (filter: status Submitted) → Object Page · generated from CDS annotations</div>
+  <div class="frame" style="left:40px; top:100px; width:1170px; height:700px;">
+    <div class="shell"><span>☰ &nbsp;Brightline Distribution · SAP BTP</span><span>👤 approver</span></div>
+    <div style="padding:14px 18px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div><div style="font-size:21px; font-weight:700;">PC-2026-0001</div><div class="t" style="color:#6a6d70;">Corrugated box 600x400x400</div></div>
+        <div><span class="badge">1</span><span class="btn">Approve</span><span class="btn">Reject</span><span class="btn" style="color:#9aa0a6; border-color:#c9ced3;">Update in S/4HANA</span></div>
+      </div>
+      <div style="display:flex; gap:40px; margin-top:14px; align-items:flex-end;"><span class="badge">2</span>
+        <div><div class="small"><b>Status</b></div><div style="font-size:22px;" class="orange">Submitted</div></div>
+        <div><div class="small"><b>Stock Status at Proposal</b></div><div style="font-size:22px;" class="orange">Reorder</div></div>
+        <div><div class="small"><b>Stock Status After Change</b></div><div style="font-size:22px;" class="red">Critical</div></div>
+        <div><div class="small"><b>Safety Stock Value Change</b></div><div style="font-size:22px;">143.55 EUR</div></div>
+        <div><div class="small"><b>Proposal Method</b></div><div style="font-size:22px;">As suggested by the formula</div></div>
+      </div>
+      <div style="margin-top:16px; display:flex; gap:28px; font-size:13px; border-bottom:1.5px solid #c9ced3; padding-bottom:6px;"><b class="blue" style="border-bottom:3px solid #0a6ed1; padding-bottom:5px;">Current, Suggested and Proposed</b><span>Basis of the Proposal</span><span>Decision</span><span>Update in SAP S/4HANA</span><span>History</span></div>
+      <div class="box" style="position:relative; margin-top:12px; padding:12px 14px; display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; font-size:12.5px;">
+        <div><b>Current (S/4HANA)</b> <span class="badge">3</span><div class="small" style="margin-top:8px;">Reorder Point</div>100 PC<div class="small">Safety Stock</div>30 PC<div class="small">Maximum Stock</div>400 PC<div class="small">Lead Time (Days)</div>7</div>
+        <div><b>Suggested by Formula</b><div class="small" style="margin-top:8px;">Reorder Point</div>298 PC<div class="small">Safety Stock</div>129 PC<div class="small">Maximum Stock</div>636 PC<div class="small">Service Level (%)</div>95</div>
+        <div><b>Proposed</b><div class="small" style="margin-top:8px;">Reorder Point</div>298 PC<div class="small">Safety Stock</div>129 PC<div class="small">Maximum Stock</div>636 PC<div class="small">Reason</div>Demand doubled within a year …</div>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-top:12px;">
+        <div class="box" style="position:relative; padding:10px 14px; font-size:12.5px;"><b>Demand (Last 12 Periods)</b> <span class="badge">4</span><div style="margin-top:6px;">24.08 PC per day · variation 29.63 · 48 goods issues · 2025001–2025012</div><div class="line" style="width:70%"></div></div>
+        <div class="box" style="position:relative; padding:10px 14px; font-size:12.5px;"><b>Expected Effect</b><div style="margin-top:6px;">Stock 80 PC · coverage 3.3 days · Reorder → <span class="red">Critical</span> · +143.55 EUR</div><div class="line" style="width:60%"></div></div>
+      </div>
+      <div class="box" style="position:relative; margin-top:12px; padding:10px 14px; font-size:12.5px;"><b>Update in SAP S/4HANA</b> <span class="badge">5</span><div style="margin-top:6px; font-family: monospace;">PATCH A_ProductSupplyPlanning(Product='TG11',Plant='1010') { "MRPType": "VB", "ReorderThresholdQuantity": "298", … }</div></div>
+      <div class="box" style="position:relative; margin-top:12px; padding:10px 14px; font-size:12.5px;"><b>History</b> <span class="badge">6</span>
+        <table class="wf" style="margin-top:6px;"><tr><th>Time</th><th>Event</th><th>User</th><th>Note</th></tr><tr><td>…</td><td>SUBMITTED</td><td>planner</td><td>Demand doubled …</td></tr><tr><td>…</td><td>APPROVED</td><td>approver</td><td></td></tr></table></div>
+    </div>
+  </div>
+  <div class="legend">
+    <h3>Design decisions</h3>
+    <div class="item"><div class="n">1</div><div>Actions only when they make sense (<i>Core.OperationAvailable</i>): Approve / Reject for Submitted, <b>Update in S/4HANA</b> for Approved. Reject needs a reason.</div></div>
+    <div class="item"><div class="n">2</div><div><b>Header KPIs</b> answer “what happens if I approve?” – status before and after, value change, method.</div></div>
+    <div class="item"><div class="n">3</div><div>Current, suggested and proposed values in <b>three columns</b> of one section.</div></div>
+    <div class="item"><div class="n">4</div><div>Basis and effect: demand from S/4HANA goods issues and the expected stock situation.</div></div>
+    <div class="item"><div class="n">5</div><div>The exact <b>S/4HANA payload</b> is shown (transparency; simulated in the read-only sandbox).</div></div>
+    <div class="item"><div class="n">6</div><div><b>Audit trail</b>: every step with user, time and note.</div></div>
+    <div class="item"><div class="n" style="background:#6a6d70">i</div><div>Fiori elements gives the standard list/object pattern, filters, variants and export with annotations instead of UI code.</div></div>
+  </div>
+</div></body></html>

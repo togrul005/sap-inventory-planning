@@ -1,0 +1,16 @@
+/* Inventory Planning Cockpit */
+.brightlineTiles .sapMGT {
+  margin: 0 0.75rem 0.75rem 0;
+}
+.brightlineHeaderLine {
+  margin-bottom: 0.75rem;
+  row-gap: 0.25rem;
+}
+.brightlineSubtle {
+  color: var(--sapContent_LabelColor);
+  font-size: var(--sapFontSmallSize);
+}
+.brightlineSuggested {
+  color: var(--sapInformativeTextColor);
+  font-weight: bold;
+}

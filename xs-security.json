@@ -1,0 +1,31 @@
+{
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.Approver",
+      "description": "Approve parameter changes"
+    },
+    {
+      "name": "$XSAPPNAME.Planner",
+      "description": "Plan inventory and propose parameter changes"
+    }
+  ],
+  "attributes": [],
+  "role-templates": [
+    {
+      "name": "Approver",
+      "description": "Planning lead: approves parameter changes and writes them to SAP S/4HANA",
+      "scope-references": [
+        "$XSAPPNAME.Approver"
+      ],
+      "attribute-references": []
+    },
+    {
+      "name": "Planner",
+      "description": "Inventory planner: syncs from SAP S/4HANA and proposes parameter changes",
+      "scope-references": [
+        "$XSAPPNAME.Planner"
+      ],
+      "attribute-references": []
+    }
+  ]
+}

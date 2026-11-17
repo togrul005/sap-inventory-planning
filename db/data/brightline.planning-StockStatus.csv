@@ -1,0 +1,6 @@
+code;name;descr;criticality;sortOrder
+C;Critical;Stock is at or below the safety stock;1;1
+R;Reorder;Stock is at or below the reorder point;2;2
+N;No parameters;No reorder point maintained;0;3
+E;Excess;Stock is above the maximum stock;5;4
+O;Healthy;Stock is between the reorder point and the maximum stock;3;5

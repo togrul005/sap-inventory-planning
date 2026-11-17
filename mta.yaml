@@ -1,0 +1,206 @@
+_schema-version: 3.3.0
+ID: inventory-planning
+version: 1.0.0
+description: "Brightline Distribution GmbH - Inventory Planning Cockpit (SAP Fiori on SAP BTP)"
+parameters:
+  enable-parallel-deployments: true
+  deploy_mode: html5-repo
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+modules:
+  - name: inventory-planning-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      instances: 1
+      memory: 512M
+      disk-quota: 1024M
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci
+    provides:
+      - name: srv-api # required by consumers of CAP services (e.g. approuter)
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: inventory-planning-auth
+      - name: inventory-planning-db
+      - name: inventory-planning-destination
+
+  - name: inventory-planning-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+      memory: 256M
+      disk-quota: 1024M
+    requires:
+      - name: inventory-planning-db
+  - name: inventory-planning
+    type: approuter.nodejs
+    path: .deploy/app-router
+    parameters:
+      keep-existing-routes: true
+      disk-quota: 256M
+      memory: 256M
+    requires:
+      - name: srv-api
+        group: destinations
+        properties:
+          name: srv-api # must be used in xs-app.json as well
+          url: ~{srv-url}
+          forwardAuthToken: true
+      - name: inventory-planning-auth
+      - name: inventory-planning-destination
+      - name: inventory-planning-html5-runtime
+    provides:
+      - name: app-api
+        properties:
+          app-protocol: ${protocol}
+          app-uri: ${default-uri}
+
+  - name: inventory-planning-app-deployer
+    type: com.sap.application.content
+    path: gen
+    build-parameters:
+      build-result: app/
+      requires:
+        - name: inventoryplanningapprovals
+          artifacts:
+            - approvals.zip
+          target-path: app/
+        - name: inventoryplanningcockpit
+          artifacts:
+            - cockpit.zip
+          target-path: app/
+    requires:
+      - name: inventory-planning-auth
+      - name: srv-api
+      - name: inventory-planning-html5-repo-host
+        parameters:
+          content-target: true
+          config:
+            HTML5Runtime_enabled: true
+    parameters:
+      config:
+        destinations:
+          - Name: srv-api
+            URL: ~{srv-api/srv-url}
+            Authentication: NoAuthentication
+            Type: HTTP
+            ProxyType: Internet
+            ForwardAuthToken: true
+            DynamicDestination: true
+
+  - name: inventoryplanningapprovals
+    type: html5
+    path: app/approvals
+    build-parameters:
+      build-result: dist
+      supported-platforms:
+        []
+      builder: custom
+      commands:
+        - npm ci
+        - npm run build
+  - name: inventoryplanningcockpit
+    type: html5
+    path: app/cockpit
+    build-parameters:
+      build-result: dist
+      supported-platforms:
+        []
+      builder: custom
+      commands:
+        - npm ci
+        - npm run build
+
+  - name: inventory-planning-destinations
+    type: com.sap.application.content
+    requires:
+      - name: inventory-planning-auth
+        parameters:
+          service-key:
+            name: inventory-planning-auth-key
+      - name: inventory-planning-html5-repo-host
+        parameters:
+          service-key:
+            name: inventory-planning-html5-repo-host-key
+      - name: srv-api
+      - name: inventory-planning-destination
+        parameters:
+          content-target: true
+    build-parameters:
+      no-source: true
+    parameters:
+      content:
+        instance:
+          existing_destinations_policy: update
+          destinations:
+            - Name: inventory-planning-html5-repository
+              ServiceInstanceName: inventory-planning-html5-repo-host
+              ServiceKeyName: inventory-planning-html5-repo-host-key
+              sap.cloud.service: brightline.planning
+            - Name: inventory-planning-auth
+              Authentication: OAuth2UserTokenExchange
+              ServiceInstanceName: inventory-planning-auth
+              ServiceKeyName: inventory-planning-auth-key
+              sap.cloud.service: brightline.planning
+
+resources:
+  - name: inventory-planning-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: inventory-planning-${org}-${space}
+        tenant-mode: dedicated
+        oauth2-configuration:
+          credential-types:
+            - "binding-secret"
+            - "x509"
+          redirect-uris:
+            - https://*~{app-api/app-uri}/**
+            - https://*.launchpad.cfapps.us10.hana.ondemand.com/**
+        role-collections:
+          - name: 'InventoryPlanning_Planner'
+            description: 'Inventory Planning Cockpit: planner who proposes parameter changes'
+            role-template-references:
+              - '$XSAPPNAME.Planner'
+          - name: 'InventoryPlanning_Approver'
+            description: 'Inventory Planning Cockpit: planning lead who approves parameter changes'
+            role-template-references:
+              - '$XSAPPNAME.Approver'
+    requires:
+      - name: app-api
+  - name: inventory-planning-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+  - name: inventory-planning-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+      config:
+        HTML5Runtime_enabled: true
+    requires:
+      - name: srv-api
+
+  - name: inventory-planning-html5-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+  - name: inventory-planning-html5-runtime
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-runtime

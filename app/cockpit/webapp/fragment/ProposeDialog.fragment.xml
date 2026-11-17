@@ -1,0 +1,93 @@
+<core:FragmentDefinition
+  xmlns="sap.m"
+  xmlns:core="sap.ui.core"
+  xmlns:form="sap.ui.layout.form">
+  <Dialog
+    id="proposeDialog"
+    title="{i18n>proposeTitle}"
+    contentWidth="40rem"
+    resizable="true"
+    draggable="true"
+    class="sapUiContentPadding">
+    <content>
+      <VBox>
+        <HBox justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
+          <ObjectIdentifier title="{dlg>/m/description}" text="{dlg>/m/material} · {i18n>plant} {dlg>/m/plant}"/>
+          <ObjectStatus
+            text="{path: 'dlg>/statusNow', formatter: '.formatter.statusText'}"
+            state="{path: 'dlg>/statusNow', formatter: '.formatter.statusState'}"
+            icon="{path: 'dlg>/statusNow', formatter: '.formatter.statusIcon'}"/>
+        </HBox>
+        <MessageStrip id="demandStrip" text="{dlg>/demandText}" type="{= ${dlg>/hasSuggestion} ? 'Information' : 'Warning'}" showIcon="true" class="sapUiTinyMarginBottom"/>
+        <MessageStrip id="formulaStrip" text="{dlg>/formulaText}" visible="{= !!${dlg>/formulaText} }" type="None" showIcon="true" customIcon="sap-icon://measure" class="sapUiTinyMarginBottom"/>
+        <MessageStrip id="mrpTypeStrip" text="{dlg>/mrpTypeText}" visible="{= !!${dlg>/mrpTypeText} }" type="Warning" showIcon="true" class="sapUiTinyMarginBottom"/>
+
+        <Table id="proposeTable" items="{dlg>/rows}" class="sapUiTinyMarginTop">
+          <headerToolbar>
+            <OverflowToolbar>
+              <Title text="{dlg>/mrpTypeLine}" level="H4"/>
+              <ToolbarSpacer/>
+              <Button id="useSuggestion" text="{i18n>useSuggestion}" icon="sap-icon://lightbulb" enabled="{dlg>/hasSuggestion}" press=".onUseSuggestion"/>
+            </OverflowToolbar>
+          </headerToolbar>
+          <columns>
+            <Column width="34%"><Text text="{i18n>dlgParameter}"/></Column>
+            <Column hAlign="End" width="18%"><Text text="{i18n>dlgCurrent}"/></Column>
+            <Column hAlign="End" width="18%"><Text text="{i18n>dlgSuggested}"/></Column>
+            <Column hAlign="End" width="30%"><Text text="{i18n>dlgNew}"/></Column>
+          </columns>
+          <items>
+            <ColumnListItem vAlign="Middle">
+              <cells>
+                <Text text="{dlg>label}"/>
+                <Text text="{dlg>current}"/>
+                <Text text="{dlg>suggested}" class="brightlineSuggested"/>
+                <Input
+                  value="{dlg>value}"
+                  type="Number"
+                  textAlign="End"
+                  valueLiveUpdate="true"
+                  valueState="{dlg>state}"
+                  valueStateText="{dlg>stateText}"
+                  description="{= ${dlg>key} === 'leadTimeDays' ? '' : ${dlg>/unit} }"
+                  fieldWidth="70%"
+                  liveChange=".onValueChange"/>
+              </cells>
+            </ColumnListItem>
+          </items>
+        </Table>
+
+        <form:SimpleForm editable="true" layout="ResponsiveGridLayout" labelSpanL="4" labelSpanM="4" labelSpanS="12" columnsL="1" columnsM="1" class="sapUiTinyMarginTop">
+          <form:content>
+            <Label text="{i18n>statusAfter}"/>
+            <ObjectStatus
+              id="statusAfter"
+              text="{path: 'dlg>/statusAfter', formatter: '.formatter.statusText'}"
+              state="{path: 'dlg>/statusAfter', formatter: '.formatter.statusState'}"
+              icon="{path: 'dlg>/statusAfter', formatter: '.formatter.statusIcon'}"/>
+            <Label text="{i18n>valueChange}"/>
+            <ObjectNumber id="valueChange" number="{dlg>/valueChangeText}" emphasized="true"/>
+            <Label text="{i18n>reason}" required="true" labelFor="proposeReason"/>
+            <TextArea
+              id="proposeReason"
+              value="{dlg>/reason}"
+              rows="3"
+              maxLength="500"
+              width="100%"
+              valueLiveUpdate="true"
+              valueState="{dlg>/reasonState}"
+              valueStateText="{i18n>errReason}"
+              placeholder="{i18n>reasonPlaceholder}"
+              liveChange=".onReasonChange"/>
+          </form:content>
+        </form:SimpleForm>
+      </VBox>
+    </content>
+    <beginButton>
+      <Button id="submitProposal" text="{i18n>submit}" type="Emphasized" press=".onSubmitProposal"/>
+    </beginButton>
+    <endButton>
+      <Button text="{i18n>cancel}" press=".onCloseProposal"/>
+    </endButton>
+  </Dialog>
+</core:FragmentDefinition>

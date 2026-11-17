@@ -1,0 +1,120 @@
+{
+  "name": "inventory-planning",
+  "version": "1.0.0",
+  "description": "Brightline Distribution GmbH - Inventory Planning Cockpit: governed reorder point, safety stock and maximum stock (SAP Fiori on SAP BTP, CAP + SAP S/4HANA Cloud)",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@cap-js/hana": "^3",
+    "@sap/cds": "^10",
+    "@sap/xssec": "^4"
+  },
+  "devDependencies": {
+    "@cap-js/cds-test": "^1",
+    "@cap-js/sqlite": "^3",
+    "@sap/cds-dk": "^10"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "watch": "cds watch",
+    "test": "node --test test/*.test.js",
+    "build:mta": "mbt build -t gen --mtar mta.tar",
+    "deploy": "cf deploy gen/mta.tar -f",
+    "mock:s4": "node test/mock-s4/server.mjs 4500"
+  },
+  "brightline": {
+    "s4WriteMode": "simulate",
+    "fourEyes": false
+  },
+  "cds": {
+    "requires": {
+      "API_MATERIAL_STOCK_SRV": {
+        "kind": "odata-v2",
+        "model": "srv/external/API_MATERIAL_STOCK_SRV",
+        "[development]": {
+          "credentials": {
+            "url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata/sap/API_MATERIAL_STOCK_SRV",
+            "requestTimeout": 30000
+          }
+        },
+        "[production]": {
+          "credentials": {
+            "destination": "S4HANA_SANDBOX",
+            "path": "/sap/opu/odata/sap/API_MATERIAL_STOCK_SRV",
+            "requestTimeout": 30000
+          }
+        }
+      },
+      "API_PRODUCT_SRV": {
+        "kind": "odata-v2",
+        "model": "srv/external/API_PRODUCT_SRV",
+        "csrf": true,
+        "[development]": {
+          "credentials": {
+            "url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata/sap/API_PRODUCT_SRV",
+            "requestTimeout": 30000
+          }
+        },
+        "[production]": {
+          "credentials": {
+            "destination": "S4HANA_SANDBOX",
+            "path": "/sap/opu/odata/sap/API_PRODUCT_SRV",
+            "requestTimeout": 30000
+          }
+        }
+      },
+      "API_MATERIAL_DOCUMENT_SRV": {
+        "kind": "odata-v2",
+        "model": "srv/external/API_MATERIAL_DOCUMENT_SRV",
+        "[development]": {
+          "credentials": {
+            "url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata/sap/API_MATERIAL_DOCUMENT_SRV",
+            "requestTimeout": 30000
+          }
+        },
+        "[production]": {
+          "credentials": {
+            "destination": "S4HANA_SANDBOX",
+            "path": "/sap/opu/odata/sap/API_MATERIAL_DOCUMENT_SRV",
+            "requestTimeout": 30000
+          }
+        }
+      },
+      "[development]": {
+        "auth": {
+          "kind": "mocked",
+          "users": {
+            "planner": {
+              "password": "planner",
+              "roles": [
+                "Planner"
+              ]
+            },
+            "approver": {
+              "password": "approver",
+              "roles": [
+                "Approver"
+              ]
+            },
+            "demo": {
+              "password": "demo",
+              "roles": [
+                "Planner",
+                "Approver"
+              ]
+            }
+          }
+        }
+      },
+      "[production]": {
+        "auth": "xsuaa"
+      },
+      "destinations": true,
+      "html5-repo": true,
+      "workzone": true
+    }
+  },
+  "engines": {
+    "node": "^22"
+  }
+}
